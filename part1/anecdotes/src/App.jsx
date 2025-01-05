@@ -13,11 +13,44 @@ const App = () => {
   ]
 
   const [selected, setSelected] = useState(0)
+  const [points, setPoints] = useState(Array(anecdotes.length).fill(0)); // Inicializa los puntos a 0 para cada anécdota
+
+
+
+  const changueSelected = () => {
+    console.log(points)
+    const randomIndex = Math.floor(Math.random() * anecdotes.length);
+    setSelected(randomIndex);
+
+    
+  }
+
+  const voted =()=> {
+    const copy = [...points];
+    copy[selected] += 1;
+    setPoints(copy);
+  }
+
+
+  const getMostVoted= () =>{
+    const maxVotes = Math.max(...points); 
+    const mostVotedIndex = points.indexOf(maxVotes); 
+    return mostVotedIndex;
+  }
+
+
 
   return (
     <div>
-      {anecdotes[selected]}
-      
+    <h1>Anecdote of the day</h1>
+     <p> {anecdotes[selected]}</p>
+     <p>has {points[selected]} votes </p>
+     <button onClick={voted}>vote</button>
+     <button onClick={changueSelected}>changue</button>
+    
+     <h2>Anecdote with Most Votes</h2>
+     <p>{anecdotes[getMostVoted()]}</p>
+
     </div>
   )
 }
