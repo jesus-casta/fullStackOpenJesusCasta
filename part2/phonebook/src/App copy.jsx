@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useData} from 'react';
 
 // Componente para mostrar el filtro
 const Filter = ({ filter, handleFilterChange }) => (
@@ -36,22 +36,21 @@ const Persons = ({ persons, deletePerson }) => (
 );
 
 const App = () => {
+  const baseURL = 'http://localhost:3001'; // Variable para la URL base
   const [persons, setPersons] = useState([]);
   const [newName, setNewName] = useState('');
   const [newNumber, setNewNumber] = useState('');
   const [filter, setFilter] = useState('');
 
-
+  // Obtener los datos de la API al cargar el componente
+  useData(() => {
+    fetch(`${baseURL}/persons`)
+      .then((response) => response.json())
+      .then((data) => setPersons(data));
+  }, [baseURL]);
 
 
   
-  // Obtener los datos de la API al cargar el componente
-  useEffect(() => {
-    fetch('http://localhost:3001/persons')  // Cambio de puerto
-      .then(response => response.json())
-      .then(data => setPersons(data));
-  }, []);
-
   // Manejador genérico para cambios en inputs
   const handleInputChange = (event) => {
     const { name, value } = event.target;
@@ -66,27 +65,38 @@ const App = () => {
     const existingPerson = persons.find((person) => person.name === newName);
 
     if (existingPerson) {
-      // Si la persona ya existe, actualizamos su número
-      const updatedPerson = { ...existingPerson, number: newNumber };
-      fetch(`http://localhost:3001/persons/${existingPerson.id}`, {  // Cambio de puerto
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updatedPerson),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          setPersons(persons.map((person) =>
-            person.id === data.id ? data : person
-          ));
-          setNewName('');
-          setNewNumber('');
-        });
+      // Si la persona ya existe, pedimos confirmación antes de actualizar
+      const shouldUpdate = window.confirm(
+        `El nombre ${newName} ya existe. ¿Deseas actualizar el número?`
+      );
+
+      if (shouldUpdate) {
+        // Si el usuario confirma, actualizamos su número
+        const updatedPerson = { ...existingPerson, number: newNumber };
+        fetch(`${baseURL}/persons/${existingPerson.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updatedPerson),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            setPersons(persons.map((person) => 
+              person.id === data.id ? data : person
+            ));
+            setNewName('');
+            setNewNumber('');
+          });
+      } else {
+        // Si el usuario cancela, no hacemos nada
+        setNewName('');
+        setNewNumber('');
+      }
     } else {
       // Si no existe, agregamos la nueva persona
       const newPerson = { name: newName, number: newNumber };
-      fetch('http://localhost:3001/persons', {  // Cambio de puerto
+      fetch(`${baseURL}/persons`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -104,12 +114,17 @@ const App = () => {
 
   // Eliminar una persona
   const deletePerson = (id) => {
-    fetch(`http://localhost:3001/persons/${id}`, {  // Cambio de puerto
-      method: 'DELETE',
-    })
-      .then(() => {
-        setPersons(persons.filter((person) => person.id !== id));
-      });
+    const person = persons.find((p) => p.id === id);
+    const confirmDelete = window.confirm(`¿Deseas eliminar a ${person.name}?`);
+
+    if (confirmDelete) {
+      fetch(`${baseURL}/persons/${id}`, {
+        method: 'DELETE',
+      })
+        .then(() => {
+          setPersons(persons.filter((person) => person.id !== id));
+        });
+    }
   };
 
   // Filtrar contactos según el texto del filtro
