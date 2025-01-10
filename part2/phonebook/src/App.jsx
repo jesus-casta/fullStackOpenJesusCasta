@@ -23,12 +23,13 @@ const PersonForm = ({ newName, newNumber, handleInputChange, addPerson }) => (
   </form>
 );
 
-// Componente para mostrar la lista de contactos
-const Persons = ({ persons }) => (
+// Componente para mostrar la lista de contactos con botón de eliminación
+const Persons = ({ persons, deletePerson }) => (
   <ul>
     {persons.map((person) => (
       <li key={person.id}>
         {person.name} - {person.number}
+        <button onClick={() => deletePerson(person.id)}>Delete</button>
       </li>
     ))}
   </ul>
@@ -42,7 +43,7 @@ const App = () => {
 
   // Obtener los datos de la API al cargar el componente
   useEffect(() => {
-    fetch('http://localhost:3001/persons')
+    fetch('http://localhost:3001/persons')  // Cambio de puerto
       .then(response => response.json())
       .then(data => setPersons(data));
   }, []);
@@ -55,29 +56,55 @@ const App = () => {
     if (name === 'filter') setFilter(value);
   };
 
-  // Agregar una nueva persona
+  // Agregar una nueva persona o actualizar el número si ya existe
   const addPerson = (event) => {
     event.preventDefault();
-    if (persons.some((person) => person.name === newName)) {
-      alert(`${newName} is already added to the phonebook`);
-      return;
-    }
+    const existingPerson = persons.find((person) => person.name === newName);
 
-    const newPerson = { name: newName, number: newNumber };
-    
-    // Enviar el nuevo contacto a la API para agregarlo
-    fetch('http://localhost:3001/persons', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(newPerson),
+    if (existingPerson) {
+      // Si la persona ya existe, actualizamos su número
+      const updatedPerson = { ...existingPerson, number: newNumber };
+      fetch(`http://localhost:3001/persons/${existingPerson.id}`, {  // Cambio de puerto
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedPerson),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          setPersons(persons.map((person) =>
+            person.id === data.id ? data : person
+          ));
+          setNewName('');
+          setNewNumber('');
+        });
+    } else {
+      // Si no existe, agregamos la nueva persona
+      const newPerson = { name: newName, number: newNumber };
+      fetch('http://localhost:3001/persons', {  // Cambio de puerto
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newPerson),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          setPersons(persons.concat(data));
+          setNewName('');
+          setNewNumber('');
+        });
+    }
+  };
+
+  // Eliminar una persona
+  const deletePerson = (id) => {
+    fetch(`http://localhost:3001/persons/${id}`, {  // Cambio de puerto
+      method: 'DELETE',
     })
-      .then(response => response.json())
-      .then(data => {
-        setPersons(persons.concat(data));
-        setNewName('');
-        setNewNumber('');
+      .then(() => {
+        setPersons(persons.filter((person) => person.id !== id));
       });
   };
 
@@ -99,7 +126,7 @@ const App = () => {
         addPerson={addPerson}
       />
       <h3>Numbers</h3>
-      <Persons persons={personsToShow} />
+      <Persons persons={personsToShow} deletePerson={deletePerson} />
     </div>
   );
 };
