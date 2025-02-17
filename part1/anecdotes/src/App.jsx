@@ -13,28 +13,29 @@ const App = () => {
   ]
 
   const [selected, setSelected] = useState(0)
-  const [points, setPoints] = useState(Array(anecdotes.length).fill(0)); // Inicializa los puntos a 0 para cada anécdota
-
+  const [votes, setVotes] = useState(Array(anecdotes.length).fill(0)); 
 
 
   const changueSelected = () => {
-    console.log(points)
-    const randomIndex = Math.floor(Math.random() * anecdotes.length);
-    setSelected(randomIndex);
-
-    
+    console.log(votes)
+    var newSelected=selected+1;
+    if (newSelected==anecdotes.length){
+      newSelected=0;
+    }
+   setSelected(newSelected);
+ 
   }
 
   const voted =()=> {
-    const copy = [...points];
-    copy[selected] += 1;
-    setPoints(copy);
+    var aux=  [...votes];
+    aux[selected] += 1;
+    setVotes(aux);
   }
 
 
   const getMostVoted= () =>{
-    const maxVotes = Math.max(...points); 
-    const mostVotedIndex = points.indexOf(maxVotes); 
+    const maxVotes = Math.max(...votes); 
+    const mostVotedIndex = votes.indexOf(maxVotes); 
     return mostVotedIndex;
   }
 
@@ -44,9 +45,9 @@ const App = () => {
     <div>
     <h1>Anecdote of the day</h1>
      <p> {anecdotes[selected]}</p>
-     <p>has {points[selected]} votes </p>
+     <p>has {votes[selected]} votes </p>
      <button onClick={voted}>vote</button>
-     <button onClick={changueSelected}>changue</button>
+     <button onClick={changueSelected}>next Anecdote</button>
     
      <h2>Anecdote with Most Votes</h2>
      <p>{anecdotes[getMostVoted()]}</p>
