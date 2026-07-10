@@ -65,14 +65,13 @@ const App = () => {
           setNewName('')
           setNewNumber('')
         })
-        .catch(() => {
-          showNotification(
-            `Information of ${existingPerson.name} has already been removed from server`,
-            'error'
-          )
-          setPersons(persons.filter((person) =>
-            person.id !== existingPerson.id
-          ))
+        .catch((error) => {
+          if (error.response?.data?.error) {
+            showNotification(error.response.data.error, 'error')
+          } else {
+            showNotification(`Information of ${existingPerson.name} has already been removed from server`, 'error')
+            setPersons(persons.filter((person) => person.id !== existingPerson.id))
+          }
         })
       return
     }
@@ -90,6 +89,9 @@ const App = () => {
         setNewName('')
         setNewNumber('')
       })
+      .catch((error) => {
+        showNotification(error.response?.data?.error || 'Adding person failed', 'error')
+      })
   }
 
   const deletePerson = (id, name) => {
@@ -102,6 +104,10 @@ const App = () => {
     personsService
       .remove(id)
       .then(() => {
+        setPersons(persons.filter((person) => person.id !== id))
+      })
+      .catch(() => {
+        showNotification(`Information of ${name} has already been removed from server`, 'error')
         setPersons(persons.filter((person) => person.id !== id))
       })
   }
