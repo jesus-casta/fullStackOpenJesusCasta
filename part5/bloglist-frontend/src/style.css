@@ -1,0 +1,35 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 2rem;
+}
+
+input {
+  margin: 0.25rem 0 0.25rem 0.5rem;
+}
+
+button {
+  margin: 0.25rem;
+}
+
+.blog {
+  border: 1px solid #333;
+  margin: 0.5rem 0;
+  padding: 0.5rem;
+}
+
+.notification {
+  border: 2px solid;
+  border-radius: 4px;
+  margin: 1rem 0;
+  padding: 0.75rem;
+}
+
+.success {
+  border-color: #2d7d32;
+  color: #2d7d32;
+}
+
+.error {
+  border-color: #b00020;
+  color: #b00020;
+}
